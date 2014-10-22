@@ -1,0 +1,75 @@
+###Machine Learning Project
+
+####Building the model
+
+After reading in the data, I set aside 10% for use in validating the model.
+
+I chose to use random forests to train the data. When exploring the data I noticed that many of the variables were factor variables with several hundred factors. Since random forests cannot handle factor variables with too many factors, I chose to exclude those variables. I also removed factor variables that had only unhelpful levels such as "" (nothing) and !#DIV/0. Then I removed numeric variable columns if there were NAs present, as this also affects the random forests function. I then reattached the classe variable.
+
+```{r}
+training <- read.csv("pml-training.csv")
+library(caret)
+library(randomForest)
+inValid <- createDataPartition(y=training$classe, p=0.1, list=FALSE)
+validation <- training[inValid,]
+training <- training[-inValid,]
+training <- training[,-(2:7)]
+sub_num <- training[sapply(training, is.numeric)]
+sub_num <- sub_num[,colSums(is.na(sub_num)) == 0] 
+classe <- training$classe
+sub_num <- cbind(sub_num, classe)
+sub_num <- sub_num[,-1]
+```
+
+I first built the model with 10 trees:
+
+```{r}
+fit10 <- randomForest(classe~., data=sub_num, ntree=10)
+varImpPlot(fit10)
+within <- predict(fit10, training)
+sum(training$classe==within)/length(training$classe)
+fit10$err.rate[10,]
+```
+
+I then tried 20 trees to see if the accuracy would improve:
+
+```{r}
+fit20 <- randomForest(classe~., data=sub_num, ntree=20)
+varImpPlot(fit20)
+within <- predict(fit20, training)
+sum(training$classe==within)/length(training$classe)
+fit20$err.rate[20,]
+```
+
+I then increased the number of trees to 50:
+
+```{r}
+fit50 <- randomForest(classe~., data=sub_num, ntree=50)
+varImpPlot(fit50)
+within <- predict(fit50, training)
+sum(training$classe==within)/length(training$classe)
+fit50$err.rate[50,]
+```
+
+####Cross-validation
+
+To validate the model, I applied it to the previously set-aside validation set:
+
+```{r}
+valid <- predict(fit50, validation)
+sum(validation$classe==valid)/length(validation$classe)
+```
+
+####Out-of-sample error
+
+I estimate the out-of-sample error rate to be:
+
+```{r}
+1-sum(validation$classe==valid)/length(validation$classe)
+```
+
+which as expected is higher than the in-sample error rate:
+
+```{r}
+1-sum(sum(training$classe==within)/length(training$classe))
+```
