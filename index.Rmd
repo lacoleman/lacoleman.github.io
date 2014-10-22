@@ -27,7 +27,7 @@ I first built the model with 10 trees:
 fit10 <- randomForest(classe~., data=sub_num, ntree=10)
 varImpPlot(fit10)
 within <- predict(fit10, training)
-sum(training$classe==within)/length(training$classe)
+confusionMatrix(within, classe)
 fit10$err.rate[10,]
 ```
 
@@ -37,7 +37,7 @@ I then tried 20 trees to see if the accuracy would improve:
 fit20 <- randomForest(classe~., data=sub_num, ntree=20)
 varImpPlot(fit20)
 within <- predict(fit20, training)
-sum(training$classe==within)/length(training$classe)
+confusionMatrix(within, classe)
 fit20$err.rate[20,]
 ```
 
@@ -47,7 +47,7 @@ I then increased the number of trees to 50:
 fit50 <- randomForest(classe~., data=sub_num, ntree=50)
 varImpPlot(fit50)
 within <- predict(fit50, training)
-sum(training$classe==within)/length(training$classe)
+confusionMatrix(within, classe)
 fit50$err.rate[50,]
 ```
 
@@ -57,7 +57,7 @@ To validate the model, I applied it to the previously set-aside validation set:
 
 ```{r}
 valid <- predict(fit50, validation)
-sum(validation$classe==valid)/length(validation$classe)
+confusionMatrix(valid, validation$classe)
 ```
 
 ####Out-of-sample error
